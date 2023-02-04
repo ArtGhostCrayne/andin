@@ -58,10 +58,17 @@ class FeedFragment : Fragment() {
             binding.progress.isVisible = state.loading
             binding.errorGroup.isVisible = state.error
             binding.emptyText.isVisible = state.empty
+
         }
 
         binding.retryButton.setOnClickListener {
             viewModel.loadPosts()
+        }
+
+        binding.swiperefresh.setOnRefreshListener {
+            viewModel.loadPosts()
+            binding.swiperefresh.isRefreshing = false
+
         }
 
         binding.fab.setOnClickListener {
