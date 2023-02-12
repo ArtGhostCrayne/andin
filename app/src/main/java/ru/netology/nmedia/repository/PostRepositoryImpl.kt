@@ -16,13 +16,13 @@ class PostRepositoryImpl: PostRepository {
         .build()
     private val gson = Gson()
     private val typeToken = object : TypeToken<List<Post>>() {}
-
+    private val typeT = object : TypeToken<Post>() {}
     companion object {
         private const val BASE_URL = "http://10.0.2.2:9999"
         private val jsonType = "application/json".toMediaType()
     }
 
-    override fun getAll(): List<Post> {
+    override fun getAll():  List<Post>{
         val request: Request = Request.Builder()
             .url("${BASE_URL}/api/slow/posts")
             .build()
@@ -35,7 +35,27 @@ class PostRepositoryImpl: PostRepository {
             }
     }
 
-    override fun likeById(id: Long) {
+  //  override fun likeById(id: Long): List<Post> {
+        override fun likeById(id: Long): Post {
+        val request: Request = Request.Builder()
+            .post("".toRequestBody(jsonType))
+            .url("${BASE_URL}/api/posts/$id/likes")
+            .build()
+
+       return client.newCall(request).execute().body?.string().let { gson.run { fromJson(it,typeT ) } }
+
+        // TODO: do this in homework
+    }
+
+    override fun unlikeById(id: Long): Post {
+        val request: Request = Request.Builder()
+            .post("".toRequestBody(jsonType))
+            .delete()
+            .url("${BASE_URL}/api/posts/$id/likes")
+            .build()
+
+        return client.newCall(request).execute().body?.string().let { gson.run { fromJson(it,typeT ) } }
+
         // TODO: do this in homework
     }
 
