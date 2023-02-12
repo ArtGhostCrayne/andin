@@ -6,14 +6,23 @@
     android:layout_height="match_parent"
     tools:context=".activity.NewPostFragment">
 
+    <ProgressBar
+        android:id="@+id/progress"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+
+        tools:visibility="visible" />
+
     <EditText
         android:id="@+id/edit"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@android:color/transparent"
         android:gravity="start|top"
         android:inputType="textMultiLine"
-        android:background="@android:color/transparent"
-        />
+        android:autofillHints=""
+        tools:ignore="LabelFor" />
 
     <com.google.android.material.bottomappbar.BottomAppBar
         android:id="@+id/bottomAppBar"
@@ -31,5 +40,9 @@
         app:srcCompat="@drawable/ic_ok_24dp"
         app:layout_anchor="@id/bottomAppBar"
         />
+
+
+
+
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
