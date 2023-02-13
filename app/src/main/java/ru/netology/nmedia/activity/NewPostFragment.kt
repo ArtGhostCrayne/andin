@@ -39,11 +39,13 @@ class NewPostFragment : Fragment() {
             viewModel.changeContent(binding.edit.text.toString())
             viewModel.save()
             binding.progress.isVisible = true
+            binding.loadText.isVisible = true
             binding.ok.isEnabled = false
             AndroidUtils.hideKeyboard(requireView())
         }
         viewModel.postCreated.observe(viewLifecycleOwner) {
             binding.progress.isVisible = false
+            binding.loadText.isVisible = false
             binding.ok.isEnabled = true
             viewModel.loadPosts()
             findNavController().navigateUp()
