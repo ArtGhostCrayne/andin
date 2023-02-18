@@ -53,6 +53,7 @@ class PostViewHolder(
                 .load(url)
                 .placeholder(R.drawable.ic_download_24)
                 .error(R.drawable.ic_error_24)
+                .circleCrop()
                 .timeout(10000)
                 .into(avatar)
 
