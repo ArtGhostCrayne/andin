@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -37,9 +38,15 @@ class NewPostFragment : Fragment() {
         binding.ok.setOnClickListener {
             viewModel.changeContent(binding.edit.text.toString())
             viewModel.save()
+            binding.progress.isVisible = true
+            binding.loadText.isVisible = true
+            binding.ok.isEnabled = false
             AndroidUtils.hideKeyboard(requireView())
         }
         viewModel.postCreated.observe(viewLifecycleOwner) {
+            binding.progress.isVisible = false
+            binding.loadText.isVisible = false
+            binding.ok.isEnabled = true
             viewModel.loadPosts()
             findNavController().navigateUp()
         }
