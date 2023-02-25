@@ -49,7 +49,8 @@ class PostViewHolder(
 
             var url = "http://10.0.2.2:9999/images/${post.attachment?.url}"
             println("Attachment: $url")
-            if (!post.attachment?.url.isNullOrBlank()) {
+            attachmentIv.isVisible = false
+            if (post.attachment != null) {
                 attachmentIv.isVisible = true
                 Glide.with(attachmentIv)
                     .load(url)

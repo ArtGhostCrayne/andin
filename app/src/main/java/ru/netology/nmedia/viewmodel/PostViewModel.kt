@@ -9,15 +9,17 @@ import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.repository.PostRepositoryImpl
 import ru.netology.nmedia.util.SingleLiveEvent
+import java.time.LocalDateTime
 
 private val empty = Post(
     id = 0,
-    content = "",
     author = "",
     authorAvatar = "",
+    content = "",
+    published = "",
     likedByMe = false,
     likes = 0,
-    published = ""
+    attachment = null
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
@@ -51,7 +53,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 //    }
     fun loadPosts() {
         _data.value = FeedModel(loading = true)
-        repository.getAllAsync(object : PostRepository.GetAllCallback {
+        repository.getAllAsync(object : PostRepository.GetAllCallback<List<Post>> {
             override fun onSuccess(posts: List<Post>) {
                 _data.postValue(FeedModel(posts = posts, empty = posts.isEmpty()))
             }
@@ -67,13 +69,19 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         edited.value?.let {
 
 
-            repository.save(it, object : PostRepository.GetCallback {
-                override fun onSuccess() {
+            repository.save(it, object : PostRepository.GetCallback<Post> {
+                override fun onSuccess(post: Post) {
                     _postCreated.postValue(Unit)
                 }
 
                 override fun onError(e: Exception) {
-
+                    _postCreated.postValue(Unit)
+                    _data.postValue(
+                        FeedModel(
+                            posts = _data.value!!.posts,
+                            errorText = "Не удалось создать пост"
+                        )
+                    )
                 }
             }
             )
@@ -85,6 +93,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         edited.value = post
     }
 
+
     fun changeContent(content: String) {
         val text = content.trim()
         if (edited.value?.content == text) {
@@ -92,53 +101,62 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
         }
         edited.value = edited.value?.copy(content = text)
     }
+
     fun modLike(id: Long, post: Post) {
-        _data.postValue(
-        _data.value?.posts?.let { posts ->
-            _data.value?.copy(posts = posts.map {
-                if (it.id != id) it
-                else {
-                    it.copy(likes = post.likes, likedByMe = post.likedByMe)
-                }
+
+
+        val posts = _data.value?.posts?.map {
+            if (it.id != id) it
+            else {
+                it.copy(likes = post.likes, likedByMe = post.likedByMe)
             }
-            )
         }
-        )
+        _data.postValue(FeedModel(posts = posts))
 
     }
 
 
     fun likeById(id: Long) {
-
+        val old = _data.value?.posts.orEmpty()
         _data.value?.posts?.map {
-            if (it.id==id){
-                if(it.likedByMe){
-                    repository.unlikeById(id, object : PostRepository.GetLikeCallback {
+            if (it.id == id) {
+                if (it.likedByMe) {
+                    repository.unlikeById(id, object : PostRepository.GetCallback<Post> {
                         override fun onSuccess(post: Post) {
                             modLike(id, post)
                         }
+
                         override fun onError(e: Exception) {
-                            _data.postValue(FeedModel(error = true))
+                            _data.postValue(
+                                FeedModel(
+                                    posts = old,
+                                    errorText = "Не удалось снять лайк"
+                                )
+                            )
                         }
                     }
                     )
 
-                }else{
-                    repository.likeById(id, object : PostRepository.GetLikeCallback {
+                } else {
+                    repository.likeById(id, object : PostRepository.GetCallback<Post> {
                         override fun onSuccess(post: Post) {
                             modLike(id, post)
                         }
+
                         override fun onError(e: Exception) {
-                            _data.postValue(FeedModel(error = true))
+                            _data.postValue(
+                                FeedModel(
+                                    posts = old,
+                                    errorText = "Не удалось поставить лайк"
+                                )
+                            )
+
                         }
                     }
                     )
                 }
             }
         }
-
-
-
 
 
 //        thread {
@@ -192,26 +210,21 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
 
     fun removeById(id: Long) {
+        val old = _data.value?.posts.orEmpty()
 
-
-            var old = _data.value?.posts.orEmpty()
-
-                repository.removeById(id, object : PostRepository.GetCallback {
-                    override fun onSuccess() {
-                        _data.postValue(
-                            _data.value?.copy(posts = _data.value?.posts.orEmpty()
-                                .filter { it.id != id }
-                            )
-                        )
-                    }
-                    override fun onError(e: Exception) {
-                        _data.postValue(_data.value?.copy(posts = old))
-                    }
-                }
+        repository.removeById(id, object : PostRepository.GetCallback<Unit> {
+            override fun onSuccess(post: Unit) {
+                _data.postValue(
+                    _data.value?.copy(posts = _data.value?.posts.orEmpty()
+                        .filter { it.id != id }
+                    )
                 )
+            }
 
-
-
-
+            override fun onError(e: Exception) {
+                _data.postValue(FeedModel(posts = old, errorText = "Не удалось удалить пост"))
+            }
+        }
+        )
     }
 }
